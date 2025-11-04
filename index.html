@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Album Automation UI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 600px;
+            padding: 24px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .status-group {
+            background: #f0fdf4;
+            border: 2px solid #86efac;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .status-text {
+            color: #15803d;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .log-panel {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .log-header {
+            background: #f9fafb;
+            padding: 12px 16px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .log-header h2 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .log-content {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 16px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .log-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .log-content::-webkit-scrollbar-track {
+            background: #111827;
+        }
+
+        .log-content::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 4px;
+        }
+
+        .log-content::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+
+        .log-entry {
+            margin-bottom: 4px;
+        }
+
+        .timestamp {
+            color: #9ca3af;
+            margin-right: 8px;
+        }
+
+        .log-message {
+            color: #f3f4f6;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 16px;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+
+            button {
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+
+            .log-content {
+                height: 150px;
+                font-size: 12px;
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Album Automation UI</h1>
+        </div>
+
+        <div class="status-group">
+            <div class="status-text">
+                <span>✅</span>
+                <span>ScriptUI Loaded!</span>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-primary" id="startBtn">Start Processing</button>
+            <button class="btn-secondary" id="closeBtn">Close</button>
+        </div>
+
+        <div class="log-panel">
+            <div class="log-header">
+                <h2>Log</h2>
+            </div>
+            <div class="log-content" id="logBox"></div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        const STATE = {
+            logs: []
+        };
+
+        // Get DOM elements
+        const logBox = document.getElementById('logBox');
+        const startBtn = document.getElementById('startBtn');
+        const closeBtn = document.getElementById('closeBtn');
+
+        // Logging function
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = {
+                timestamp: timestamp,
+                message: message
+            };
+
+            STATE.logs.push(logEntry);
+
+            const logElement = document.createElement('div');
+            logElement.className = 'log-entry';
+            logElement.innerHTML = `<span class="timestamp">[${timestamp}]</span><span class="log-message">${message}</span>`;
+
+            logBox.appendChild(logElement);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        // Button event handlers
+        startBtn.addEventListener('click', function() {
+            log('Start button clicked. ScriptUI is working.');
+
+            // Simulate processing
+            startBtn.textContent = 'Processing...';
+            startBtn.disabled = true;
+            startBtn.classList.add('pulse');
+
+            setTimeout(() => {
+                log('Processing simulation started...');
+
+                setTimeout(() => {
+                    log('Processing step 1 completed.');
+
+                    setTimeout(() => {
+                        log('Processing step 2 completed.');
+
+                        setTimeout(() => {
+                            log('All processing complete!');
+                            startBtn.textContent = 'Start Processing';
+                            startBtn.disabled = false;
+                            startBtn.classList.remove('pulse');
+                        }, 1000);
+                    }, 1000);
+                }, 1000);
+            }, 500);
+        });
+
+        closeBtn.addEventListener('click', function() {
+            log('Close button clicked. Farewell!');
+
+            setTimeout(() => {
+                if (confirm('Are you sure you want to close?')) {
+                    document.body.style.opacity = '0';
+                    document.body.style.transition = 'opacity 0.3s ease';
+
+                    setTimeout(() => {
+                        window.close();
+                    }, 300);
+                } else {
+                    log('Close cancelled by user.');
+                }
+            }, 100);
+        });
+
+        // Initialize
+        window.addEventListener('load', function() {
+            log('✅ Album Automation UI loaded.');
+            log('System ready. Click "Start Processing" to begin.');
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                startBtn.click();
+            } else if (e.key === 'Escape') {
+                closeBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>
